@@ -1,0 +1,29 @@
+# ═══════════════════════════════════════════════════════════════════
+#  Classroom Co-Pilot AI — Requirements (Enhanced Build)
+#  Install: pip install -r requirements.txt
+# ═══════════════════════════════════════════════════════════════════
+
+# ── Core Framework ──────────────────────────────────────────────────
+streamlit>=1.35.0
+
+# ── Google Gemini SDK (LLM + native audio transcription) ────────────
+google-genai>=1.0.0
+
+# ── Text-to-Speech ──────────────────────────────────────────────────
+gTTS>=2.5.0
+
+# ── Data Validation (structured LLM output via Pydantic) ────────────
+pydantic>=2.0.0
+
+# ── Environment variable management ─────────────────────────────────
+python-dotenv>=1.0.0
+
+# ── Document Processing ──────────────────────────────────────────────
+PyPDF2>=3.0.0
+python-docx>=1.1.0
+
+# ── Speech Recognition fallback (Google STT, no API key needed) ─────
+SpeechRecognition>=3.10.0
+
+# ── Local Whisper STT fallback (optional, ~150 MB download) ─────────
+# openai-whisper>=20231117   # Uncomment for offline STT support

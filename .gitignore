@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+env/
+venv/
+.venv/
+uv_temp/
+
+# Streamlit secrets — NEVER commit these!
+.streamlit/secrets.toml
+
+# Environment files — NEVER commit real keys!
+.env
+env
+# env.example is safe to commit (has placeholder values only)
+# but add it here if you ever want to be extra safe
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Compiled
+*.pyc
