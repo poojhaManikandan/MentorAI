@@ -73,7 +73,7 @@ _DEFAULTS = {
     "provider":         "Gemini" if _GEMINI_KEY else ("OpenRouter" if _OPENROUTER_KEY else "Ollama"),
     "gemini_api_key":   _GEMINI_KEY,
     "openrouter_api_key": _OPENROUTER_KEY,
-    "openrouter_model": "meta-llama/llama-3-8b-instruct:free",
+    "openrouter_model": "openrouter/free",
     "doc_store":        doc_processor.DocumentStore(),
     "socratic_chat":    [],
     "last_socratic_audio_hash": None,
