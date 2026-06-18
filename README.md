@@ -1,3 +1,5 @@
+
+https://mentorai-bf6xvd5kqphpyqy2al9vu4.streamlit.app/
 # 🎓 MentorAI
 
 ### AI Classroom Intelligence System
