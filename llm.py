@@ -1037,6 +1037,9 @@ def _generate_openrouter(
     if not api_key or api_key.strip().lower() in ("", "mock"):
         return _get_mock_content(command.lower())
 
+    api_key = api_key.strip()
+    model_name = model_name.strip()
+
     full_prompt = _build_full_prompt(command, class_level, subject, chapter, topic, context)
 
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -1058,6 +1061,7 @@ def _generate_openrouter(
     }
 
     generated_json_text = ""
+    response = None
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=60)
         response.raise_for_status()
@@ -1084,7 +1088,13 @@ def _generate_openrouter(
         return ClassroomContent(**parsed_data)
 
     except requests.exceptions.RequestException as req_err:
-        raise RuntimeError(f"OpenRouter API connection error: {req_err}") from req_err
+        err_detail = str(req_err)
+        if response is not None:
+            try:
+                err_detail += f" | Details: {response.text}"
+            except Exception:
+                pass
+        raise RuntimeError(f"OpenRouter API connection error: {err_detail}") from req_err
     except json.JSONDecodeError as json_err:
         raise RuntimeError(f"OpenRouter returned invalid JSON: {json_err}\nRaw output: {generated_json_text}") from json_err
     except Exception as exc:
@@ -1103,6 +1113,9 @@ def _generate_socratic_openrouter(
 ) -> dict:
     if not api_key or api_key.strip().lower() in ("", "mock"):
         return _get_mock_socratic_response(topic, student_reply)
+
+    api_key = api_key.strip()
+    model_name = model_name.strip()
 
     messages = [
         {"role": "system", "content": _SOCRATIC_SYSTEM_PROMPT + "\n\nCRITICAL: You must return valid JSON matching this exact structure: {\"guidance\": \"...\", \"next_question\": \"...\"}. Do not include markdown code blocks or any other text."}
@@ -1138,6 +1151,7 @@ def _generate_socratic_openrouter(
     }
 
     generated_json_text = ""
+    response = None
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=60)
         response.raise_for_status()
@@ -1167,7 +1181,13 @@ def _generate_socratic_openrouter(
         return parsed_data
 
     except requests.exceptions.RequestException as req_err:
-        raise RuntimeError(f"OpenRouter Socratic API connection error: {req_err}") from req_err
+        err_detail = str(req_err)
+        if response is not None:
+            try:
+                err_detail += f" | Details: {response.text}"
+            except Exception:
+                pass
+        raise RuntimeError(f"OpenRouter Socratic API connection error: {err_detail}") from req_err
     except json.JSONDecodeError as json_err:
         raise RuntimeError(f"OpenRouter Socratic returned invalid JSON: {json_err}\nRaw output: {generated_json_text}") from json_err
     except Exception as exc:
@@ -1186,6 +1206,9 @@ def _generate_debate_openrouter(
 ) -> dict:
     if not api_key or api_key.strip().lower() in ("", "mock"):
         return _get_mock_debate_response(topic, student_reply)
+
+    api_key = api_key.strip()
+    model_name = model_name.strip()
 
     system_prompt = _DEBATE_SYSTEM_PROMPT.format(topic=topic, class_level=class_level)
     messages = [
@@ -1222,6 +1245,7 @@ def _generate_debate_openrouter(
     }
 
     generated_json_text = ""
+    response = None
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=60)
         response.raise_for_status()
@@ -1251,7 +1275,13 @@ def _generate_debate_openrouter(
         return parsed_data
 
     except requests.exceptions.RequestException as req_err:
-        raise RuntimeError(f"OpenRouter Debate API connection error: {req_err}") from req_err
+        err_detail = str(req_err)
+        if response is not None:
+            try:
+                err_detail += f" | Details: {response.text}"
+            except Exception:
+                pass
+        raise RuntimeError(f"OpenRouter Debate API connection error: {err_detail}") from req_err
     except json.JSONDecodeError as json_err:
         raise RuntimeError(f"OpenRouter Debate returned invalid JSON: {json_err}\nRaw output: {generated_json_text}") from json_err
     except Exception as exc:

@@ -80,6 +80,7 @@ _DEFAULTS = {
     "debate_chat":      [],
     "last_debate_audio_hash": None,
     "topic_input_value": "",
+    "content_mode":     "NORMAL",  # NORMAL | SOCRATIC | DEBATE
 }
 for _k, _v in _DEFAULTS.items():
     if _k not in st.session_state:
@@ -156,18 +157,25 @@ def process_command(cmd: str) -> bool:
     st.session_state.content  = content
     st.session_state.revealed = False
     st.session_state.history.append({"command": cmd, "content": content})
-    is_debate = "debate" in cmd.lower() or (content and content.explanation and "debate" in content.explanation.lower())
-    is_socratic = not is_debate and (content and getattr(content, "socratic_question", None))
 
-    if content and is_debate:
+    # Determine mode STRICTLY from the command text — never from AI response content
+    if "debate" in cmd.lower():
+        st.session_state.content_mode = "DEBATE"
+    elif "socratic" in cmd.lower() or "think" in cmd.lower():
+        st.session_state.content_mode = "SOCRATIC"
+    else:
+        st.session_state.content_mode = "NORMAL"
+
+    if st.session_state.content_mode == "DEBATE":
         st.session_state.debate_chat = [
             {"role": "assistant", "text": "Aap kis perspective ke paksh mein hain (Perspective A ya Perspective B)? Apna point of view (argument) yahan likhein ya bolein, aur chaliye charcha shuru karte hain!"}
         ]
         st.session_state.last_debate_audio_hash = None
         st.session_state.socratic_chat = []
-    elif content and is_socratic:
+    elif st.session_state.content_mode == "SOCRATIC":
+        sq = getattr(content, "socratic_question", None) or "Aapko kya lagta hai is topic ke baare mein?"
         st.session_state.socratic_chat = [
-            {"role": "assistant", "text": content.socratic_question}
+            {"role": "assistant", "text": sq}
         ]
         st.session_state.last_socratic_audio_hash = None
         st.session_state.debate_chat = []
@@ -361,6 +369,26 @@ def render_sidebar():
                 if _nk != st.session_state.ollama_model:
                     st.session_state.ollama_model = _nk
 
+        st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+        with st.expander("🛠️ Developer Git Sync", expanded=False):
+            commit_msg = st.text_input("Commit Message", value="Fix OpenRouter model config and connection reporting")
+            if st.button("Commit & Push to GitHub", use_container_width=True):
+                with st.spinner("Pushing to GitHub..."):
+                    import subprocess
+                    try:
+                        # Stage all changes
+                        subprocess.run(["git", "add", "-A"], capture_output=True, text=True, check=True)
+                        # Commit the changes
+                        subprocess.run(["git", "commit", "-m", commit_msg], capture_output=True, text=True)
+                        # Push to repository
+                        res = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True, check=True)
+                        st.success("Successfully pushed to GitHub! Reload the deployed app in a minute.")
+                        st.text(res.stdout + "\n" + res.stderr)
+                    except Exception as err:
+                        st.error(f"Git Push Failed: {err}")
+                        if "res" in locals():
+                            st.text(res.stdout + "\n" + res.stderr)
+
 
 def render_header():
     st.markdown("""
@@ -460,14 +488,15 @@ def render_student_content(compact: bool = False) -> None:
         """, unsafe_allow_html=True)
         return
 
-    # Check active mode
-    is_debate = "debate" in st.session_state.transcript.lower() or (c.explanation and "debate" in c.explanation.lower())
-    is_socratic = not is_debate and ("socratic" in st.session_state.transcript.lower() or "think" in st.session_state.transcript.lower() or (c.socratic_question is not None and len(c.socratic_question.strip()) > 0))
+    # Determine mode from the authoritative session state variable (set by process_command)
+    _mode = st.session_state.get("content_mode", "NORMAL")
+    is_debate   = (_mode == "DEBATE")
+    is_socratic = (_mode == "SOCRATIC")
 
     # ── CONCEPT / STORY ───────────────────────────────────────────────────
     if c.intent in ("CONCEPT", "STORY"):
         body    = c.story if c.intent == "STORY" else c.explanation
-        
+
         # Heading adjustments
         if is_socratic:
             heading = f"🤔 Socratic Inquiry: {c.topic}"
